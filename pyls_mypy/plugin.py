@@ -1,4 +1,5 @@
 import re
+import tempfile
 from mypy import api as mypy_api
 from pyls import hookimpl
 
@@ -43,17 +44,21 @@ def parse_line(line, document=None):
 def pyls_lint(config, document):
     live_mode = config.plugin_settings('pyls_mypy').get('live_mode', True)
     if live_mode:
-        args = ('--incremental',
-                '--show-column-numbers',
-                '--follow-imports', 'silent',
-                '--command', document.source)
+        with tempfile.NamedTemporaryFile('w') as fp:
+            fp.write(document.source)
+            fp.flush()
+            args = ('--incremental',
+                    '--show-column-numbers',
+                    '--follow-imports', 'silent',
+                    '--shadow-file', document.path, fp.name,
+                    document.path)
+            report, errors, _ = mypy_api.run(args)
     else:
         args = ('--incremental',
                 '--show-column-numbers',
                 '--follow-imports', 'silent',
                 document.path)
-
-    report, errors, _ = mypy_api.run(args)
+        report, errors, _ = mypy_api.run(args)
 
     diagnostics = []
     for line in report.splitlines():
