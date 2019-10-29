@@ -72,6 +72,9 @@ def pyls_lint(config, workspace, document, is_saved):
     if settings.get('strict', False):
         args.append('--strict')
 
+    if settings.get('ignore_missing_imports', False):
+        args.append('--ignore-missing-imports')
+
     report, errors, _ = mypy_api.run(args)
 
     diagnostics = []
