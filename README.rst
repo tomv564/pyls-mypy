@@ -30,6 +30,13 @@ As mypy is unaware of what file path is being checked, there are limitations wit
 
 Turning off live_mode means you must save your changes for mypy diagnostics to update correctly.
 
+``config_files`` (default is []) specifies a list of mypy configuration files.
+
+This passes the first configuration file found in the list of provided files to mypy.
+If the file path is relative, the file will be searched for all the way up to the root of the project directory.
+
+File paths support user directory and environment variable expansion.
+
 Depending on your editor, the configuration should be roughly like this:
 
 ::
@@ -41,7 +48,8 @@ Depending on your editor, the configuration should be roughly like this:
             "pyls_mypy":
             {
                 "enabled": true,
-                "live_mode": false
+                "live_mode": false,
+                "config_files": ["config/mypy.ini"]
             }
         }
     }
