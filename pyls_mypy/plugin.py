@@ -3,7 +3,7 @@ import logging
 from mypy import api as mypy_api
 from pyls import hookimpl
 
-line_pattern = r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
+line_pattern = r"([a-z]:[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
 log = logging.getLogger(__name__)
 
@@ -56,16 +56,17 @@ def parse_line(line, document=None):
 def pyls_lint(config, workspace, document, is_saved):
     settings = config.plugin_settings('pyls_mypy')
     live_mode = settings.get('live_mode', True)
-    if live_mode:
+    if is_saved:
+        args = ['--incremental',
+                '--show-column-numbers',
+                '--follow-imports', 'silent',
+                '--config-file', document.path[:document.path.rfind("\\")+1]+"mypy.ini",
+                document.path]
+    elif live_mode:
         args = ['--incremental',
                 '--show-column-numbers',
                 '--follow-imports', 'silent',
                 '--command', document.source]
-    elif is_saved:
-        args = ['--incremental',
-                '--show-column-numbers',
-                '--follow-imports', 'silent',
-                document.path]
     else:
         return []
 
