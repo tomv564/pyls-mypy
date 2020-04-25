@@ -1,4 +1,7 @@
 import re
+import tempfile
+import os
+import os.path
 import logging
 from mypy import api as mypy_api
 from pyls import hookimpl
@@ -38,7 +41,7 @@ def parse_line(line, document=None):
                 # There may be a better solution, but mypy does not provide end
                 'end': {'line': lineno, 'character': offset + 1}
             },
-            'message': msg,
+            'message': msg.replace("]", "&#93;"),#Prevents spyder from messign it up
             'severity': errno
         }
         if document:
@@ -56,24 +59,38 @@ def parse_line(line, document=None):
 def pyls_lint(config, workspace, document, is_saved):
     settings = config.plugin_settings('pyls_mypy')
     live_mode = settings.get('live_mode', True)
+    path = document.path
+    while (loc:=path.rfind("\\"))>-1:
+        p = path[:loc+1]+"mypy.ini"
+        if os.path.isfile(p):
+            break
+        else:
+            path = path[:loc]
     if is_saved:
         args = ['--incremental',
                 '--show-column-numbers',
-                '--follow-imports', 'silent',
-                '--config-file', document.path[:document.path.rfind("\\")+1]+"mypy.ini",
-                document.path]
+                '--follow-imports', 'silent']
     elif live_mode:
+        tmpFile = tempfile.NamedTemporaryFile('w', delete=False)
+        tmpFile.write(document.source)
+        tmpFile.flush()
         args = ['--incremental',
                 '--show-column-numbers',
                 '--follow-imports', 'silent',
-                '--command', document.source]
+                '--shadow-file', document.path, tmpFile.name]
     else:
         return []
-
+    if loc != -1:
+        args.append('--config-file')
+        args.append(p)
+    args.append(document.path)
     if settings.get('strict', False):
         args.append('--strict')
 
     report, errors, _ = mypy_api.run(args)
+    if "tmpFile" in locals():
+        tmpFile.close()
+        os.unlink(tmpFile.name)
 
     diagnostics = []
     for line in report.splitlines():
