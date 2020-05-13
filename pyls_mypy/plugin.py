@@ -72,6 +72,10 @@ def pyls_lint(config, workspace, document, is_saved):
     if settings.get('strict', False):
         args.append('--strict')
 
+    prepend = settings.get('prepend')
+    if prepend:
+        args = prepend + args
+
     report, errors, _ = mypy_api.run(args)
 
     diagnostics = []

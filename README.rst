@@ -21,6 +21,7 @@ Install into the same virtualenv as pyls itself.
 
 Configuration
 -------------
+``prepend`` (default is ``[]``) list of additional command-line options to prepend
 
 ``live_mode`` (default is True) provides type checking as you type.
 
@@ -41,7 +42,8 @@ Depending on your editor, the configuration should be roughly like this:
             "pyls_mypy":
             {
                 "enabled": true,
-                "live_mode": false
+                "live_mode": false,
+                "prepend": ["--python-executable", "/tmp/foo/bin/python"]
             }
         }
     }
