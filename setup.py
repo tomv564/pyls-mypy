@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
-import versioneer
+from pyls_mypy import _version
 
 if __name__ == "__main__":
-    setup(version=versioneer.get_version(), cmdclass=versioneer.get_cmdclass())
+    setup(version=_version.__version__)
