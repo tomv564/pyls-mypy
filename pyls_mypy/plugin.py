@@ -7,7 +7,7 @@ from mypy import api as mypy_api
 from pyls import hookimpl
 from sys import platform
 
-line_pattern = r"((?:^[a-z]:)[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
+line_pattern = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
 log = logging.getLogger(__name__)
 
