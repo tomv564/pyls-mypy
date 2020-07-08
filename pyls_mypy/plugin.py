@@ -5,8 +5,9 @@ import os.path
 import logging
 from mypy import api as mypy_api
 from pyls import hookimpl
+from sys import platform
 
-line_pattern = r"([a-z]:[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
+line_pattern = r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ def parse_line(line, document=None):
                 # There may be a better solution, but mypy does not provide end
                 'end': {'line': lineno, 'character': offset + 1}
             },
-            'message': msg.replace("]", "&#93;"),#Prevents spyder from messign it up
+            'message': msg,
             'severity': errno
         }
         if document:
