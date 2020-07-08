@@ -1,11 +1,11 @@
 Mypy plugin for PYLS
 ======================
 
-.. image:: https://badge.fury.io/py/pyls-mypy.svg
-    :target: https://badge.fury.io/py/pyls-mypy
+.. image:: https://badge.fury.io/py/mypy-ls.svg
+    :target: https://badge.fury.io/py/mypy-ls
 
-.. image:: https://travis-ci.org/tomv564/pyls-mypy.svg?branch=master
-    :target: https://travis-ci.org/tomv564/pyls-mypy
+.. image:: https://github.com/Richardk2n/pyls-mypy/workflows/Python%20package/badge.svg?branch=master
+    :target: https://github.com/Richardk2n/pyls-mypy/
 
 This is a plugin for the Palantir's Python Language Server (https://github.com/palantir/python-language-server)
 

@@ -7,7 +7,7 @@ from mypy import api as mypy_api
 from pyls import hookimpl
 from sys import platform
 
-line_pattern = r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
+line_pattern = r"((?:^[a-z]:)[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
 log = logging.getLogger(__name__)
 
@@ -61,7 +61,8 @@ def pyls_lint(config, workspace, document, is_saved):
     settings = config.plugin_settings('pyls_mypy')
     live_mode = settings.get('live_mode', True)
     path = document.path
-    while (loc:=path.rfind("\\"))>-1:
+    loc:=path.rfind("\\")
+    while (loc)>-1:
         p = path[:loc+1]+"mypy.ini"
         if os.path.isfile(p):
             break
