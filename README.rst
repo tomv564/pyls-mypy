@@ -9,7 +9,7 @@ Mypy plugin for PYLS
 
 This is a plugin for the Palantir's Python Language Server (https://github.com/palantir/python-language-server)
 
-It, like mypy, requires Python 3.2 or newer.
+It, like mypy, requires Python 3.6 or newer.
 
 
 Installation
@@ -31,7 +31,7 @@ Depending on your editor, the configuration (found in a file called mypy-ls.cfg 
 ::
 
     {
-		"enabled": True,
-		"live_mode": True,
-		"strict": False
+	"enabled": True,
+	"live_mode": True,
+	"strict": False
     }
