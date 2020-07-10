@@ -1,3 +1,2 @@
 include README.rst
-include versioneer.py
-include pyls-mypy/_version.py
+include mypy_ls/_version.py
