@@ -1,7 +1,7 @@
 import pytest
 
 from pyls.workspace import Document
-from pyls_mypy import plugin
+from mypy_ls import plugin
 
 DOC_URI = __file__
 DOC_TYPE_ERR = """{}.append(3)
@@ -16,6 +16,10 @@ TEST_LINE_WITHOUT_LINE = ('test_plugin.py: '
 
 
 class FakeConfig(object):
+    
+    def __init__(self):
+        self._root_path = "C:"
+
     def plugin_settings(self, plugin, document_path=None):
         return {}
 
@@ -24,6 +28,7 @@ def test_plugin():
     config = FakeConfig()
     doc = Document(DOC_URI, DOC_TYPE_ERR)
     workspace = None
+    plugin.pyls_settings(config)
     diags = plugin.pyls_lint(config, workspace, doc, is_saved=False)
 
     assert len(diags) == 1
