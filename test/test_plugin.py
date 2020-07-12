@@ -1,6 +1,9 @@
 import pytest
 
-from pyls.workspace import Document
+from pyls.workspace import Workspace, Document
+from pyls.config.config import Config
+from pyls import uris
+from mock import Mock
 from mypy_ls import plugin
 
 DOC_URI = __file__
@@ -15,8 +18,16 @@ TEST_LINE_WITHOUT_LINE = ('test_plugin.py: '
                           'error: "Request" has no attribute "id"')
 
 
+@pytest.fixture
+def workspace(tmpdir):
+    """Return a workspace."""
+    ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
+    ws._config = Config(ws.root_uri, {}, 0, {})
+    return ws
+
+
 class FakeConfig(object):
-    
+
     def __init__(self):
         self._root_path = "C:"
 
@@ -24,9 +35,15 @@ class FakeConfig(object):
         return {}
 
 
-def test_plugin():
+def test_settings():
     config = FakeConfig()
-    doc = Document(DOC_URI, DOC_TYPE_ERR)
+    settings = plugin.pyls_settings(config)
+    assert settings == {"plugins": {"mypy-ls": {}}}
+
+
+def test_plugin(workspace):
+    config = FakeConfig()
+    doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
     workspace = None
     plugin.pyls_settings(config)
     diags = plugin.pyls_lint(config, workspace, doc, is_saved=False)
@@ -38,33 +55,33 @@ def test_plugin():
     assert diag['range']['end'] == {'line': 0, 'character': 1}
 
 
-def test_parse_full_line():
-    doc = Document(DOC_URI, DOC_TYPE_ERR)
+def test_parse_full_line(workspace):
+    doc = Document(DOC_URI, workspace)
     diag = plugin.parse_line(TEST_LINE, doc)
     assert diag['message'] == '"Request" has no attribute "id"'
     assert diag['range']['start'] == {'line': 278, 'character': 7}
     assert diag['range']['end'] == {'line': 278, 'character': 8}
 
 
-def test_parse_line_without_col():
-    doc = Document(DOC_URI, DOC_TYPE_ERR)
+def test_parse_line_without_col(workspace):
+    doc = Document(DOC_URI, workspace)
     diag = plugin.parse_line(TEST_LINE_WITHOUT_COL, doc)
     assert diag['message'] == '"Request" has no attribute "id"'
     assert diag['range']['start'] == {'line': 278, 'character': 0}
     assert diag['range']['end'] == {'line': 278, 'character': 1}
 
 
-def test_parse_line_without_line():
-    doc = Document(DOC_URI, DOC_TYPE_ERR)
+def test_parse_line_without_line(workspace):
+    doc = Document(DOC_URI, workspace)
     diag = plugin.parse_line(TEST_LINE_WITHOUT_LINE, doc)
     assert diag['message'] == '"Request" has no attribute "id"'
     assert diag['range']['start'] == {'line': 0, 'character': 0}
-    assert diag['range']['end'] == {'line': 0, 'character': 1}
+    assert diag['range']['end'] == {'line': 0, 'character': 6}
 
 
 @pytest.mark.parametrize('word,bounds', [('', (7, 8)), ('my_var', (7, 13))])
-def test_parse_line_with_context(monkeypatch, word, bounds):
-    doc = Document(DOC_URI, 'DOC_TYPE_ERR')
+def test_parse_line_with_context(monkeypatch, word, bounds, workspace):
+    doc = Document(DOC_URI, workspace)
     monkeypatch.setattr(Document, 'word_at_position', lambda *args: word)
     diag = plugin.parse_line(TEST_LINE, doc)
     assert diag['message'] == '"Request" has no attribute "id"'
