@@ -3,7 +3,7 @@ import logging
 from mypy import api as mypy_api
 from pyls import hookimpl
 
-line_pattern = r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
+line_matcher = re.compile(r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)").match
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ def parse_line(line, document=None):
     Return a language-server diagnostic from a line of the Mypy error report;
     optionally, use the whole document to provide more context on it.
     '''
-    result = re.match(line_pattern, line)
+    result = line_matcher(line)
     if result:
         file_path, lineno, offset, severity, msg = result.groups()
 
