@@ -1,7 +1,13 @@
 import re
 import logging
+import tempfile
+import platform
+import os
+import contextlib
+from pathlib import Path
 from mypy import api as mypy_api
 from pyls import hookimpl
+from typing import IO, Tuple, Optional
 
 line_pattern = r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
@@ -52,15 +58,45 @@ def parse_line(line, document=None):
         return diag
 
 
+def smart_tempfile(settings) -> Optional[Tuple[IO[bytes], Path]]:
+    """
+    Returns a temporary file-like object opened in write mode and pointed to by
+    the returned path.
+    May fail if the configuration does not allow writing to disk.
+    """
+    if platform.system() == "Linux":
+        p = Path("/proc") / str(os.getpid()) / "fd"
+        if p.exists():
+            try:
+                import memfd
+                fd = memfd.open("_", flags=0, mode="wb")
+                return fd, p / str(fd.fileno())
+            except IOError:
+                pass # fallback
+    if not settings.get("temporary_write", False):
+        return None
+    fd = tempfile.NamedTemporaryFile('wb')
+    return (fd, fd.name)
+
+
+
 @hookimpl
 def pyls_lint(config, workspace, document, is_saved):
     settings = config.plugin_settings('pyls_mypy')
     live_mode = settings.get('live_mode', True)
+    fd = contextlib.nullcontext(None)
     if live_mode:
         args = ['--incremental',
                 '--show-column-numbers',
-                '--follow-imports', 'silent',
-                '--command', document.source]
+                '--follow-imports', 'silent']
+        t  = smart_tempfile(settings)
+        if t is None:
+            args += ['--command', document.source]
+        else:
+            (fd, path) = t
+            fd.write(document.source.encode("utf8"))
+            fd.flush()
+            args += ['--shadow-file', document.path, str(path), document.path]
     elif is_saved:
         args = ['--incremental',
                 '--show-column-numbers',
@@ -72,7 +108,8 @@ def pyls_lint(config, workspace, document, is_saved):
     if settings.get('strict', False):
         args.append('--strict')
 
-    report, errors, _ = mypy_api.run(args)
+    with fd:
+        report, errors, _ = mypy_api.run(args)
 
     diagnostics = []
     for line in report.splitlines():
