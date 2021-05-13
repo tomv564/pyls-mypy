@@ -1,7 +1,7 @@
 import re
 import logging
 from mypy import api as mypy_api
-from pyls import hookimpl
+from pylsp import hookimpl
 
 line_pattern = r"([^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
@@ -53,7 +53,7 @@ def parse_line(line, document=None):
 
 
 @hookimpl
-def pyls_lint(config, workspace, document, is_saved):
+def pylsp_lint(config, workspace, document, is_saved):
     settings = config.plugin_settings('pyls_mypy')
     live_mode = settings.get('live_mode', True)
     if live_mode:

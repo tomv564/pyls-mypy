@@ -1,6 +1,7 @@
 import pytest
 
-from pyls.workspace import Document
+from pylsp.workspace import Document
+
 from pyls_mypy import plugin
 
 DOC_URI = __file__
