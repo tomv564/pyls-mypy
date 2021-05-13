@@ -1,2 +1,5 @@
-python-language-server>=0.34.0
-mypy
+future;python_version < '3'
+flake8
+configparser
+python-lsp-server
+mypy;python_version >= '3.2'
