@@ -7,7 +7,7 @@ Mypy plugin for PYLS
 .. image:: https://travis-ci.org/tomv564/pyls-mypy.svg?branch=master
     :target: https://travis-ci.org/tomv564/pyls-mypy
 
-This is a plugin for the Palantir's Python Language Server (https://github.com/palantir/python-language-server)
+This is a plugin for the [Python LSP Server](https://github.com/python-lsp/python-lsp-server).
 
 It, like mypy, requires Python 3.2 or newer.
 
@@ -15,7 +15,7 @@ It, like mypy, requires Python 3.2 or newer.
 Installation
 ------------
 
-Install into the same virtualenv as pyls itself.
+Install into the same virtualenv as python-lsp-server itself.
 
 ``pip install pyls-mypy``
 
@@ -34,7 +34,7 @@ Depending on your editor, the configuration should be roughly like this:
 
 ::
 
-    "pyls":
+    "pylsp":
     {
         "plugins":
         {

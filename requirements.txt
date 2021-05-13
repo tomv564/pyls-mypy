@@ -1,5 +1,5 @@
 future;python_version < '3'
 flake8
 configparser
-python-language-server
+python-lsp-server
 mypy;python_version >= '3.2'
