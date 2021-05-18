@@ -1,2 +1,4 @@
 python-lsp-server
 mypy
+black
+pre-commit
