@@ -31,7 +31,7 @@ Depending on your editor, the configuration (found in a file called mypy-ls.cfg 
 ::
 
     {
-    "enabled": True,
-    "live_mode": True,
-    "strict": False
+      "enabled": True,
+      "live_mode": True,
+      "strict": False
     }
