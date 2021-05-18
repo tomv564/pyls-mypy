@@ -7,8 +7,9 @@ Mypy plugin for PYLS
 .. image:: https://github.com/Richardk2n/pyls-mypy/workflows/Python%20package/badge.svg?branch=master
     :target: https://github.com/Richardk2n/pyls-mypy/
 
-This is a plugin for the [Python LSP Server](https://github.com/python-lsp/python-lsp-server).
+This is a plugin for the `Python LSP Server`_.
 
+.. _Python LSP Server: https://github.com/python-lsp/python-lsp-server
 It, like mypy, requires Python 3.6 or newer.
 
 
