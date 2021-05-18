@@ -1,8 +1,8 @@
 import pytest
 
-from pyls.workspace import Workspace, Document
-from pyls.config.config import Config
-from pyls import uris
+from pylsp.workspace import Workspace, Document
+from pylsp.config.config import Config
+from pylsp import uris
 from mock import Mock
 from mypy_ls import plugin
 
@@ -37,7 +37,7 @@ class FakeConfig(object):
 
 def test_settings():
     config = FakeConfig()
-    settings = plugin.pyls_settings(config)
+    settings = plugin.pylsp_settings(config)
     assert settings == {"plugins": {"mypy-ls": {}}}
 
 
@@ -45,8 +45,8 @@ def test_plugin(workspace):
     config = FakeConfig()
     doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
     workspace = None
-    plugin.pyls_settings(config)
-    diags = plugin.pyls_lint(config, workspace, doc, is_saved=False)
+    plugin.pylsp_settings(config)
+    diags = plugin.pylsp_lint(config, workspace, doc, is_saved=False)
 
     assert len(diags) == 1
     diag = diags[0]

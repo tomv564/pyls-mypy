@@ -7,7 +7,7 @@ Mypy plugin for PYLS
 .. image:: https://github.com/Richardk2n/pyls-mypy/workflows/Python%20package/badge.svg?branch=master
     :target: https://github.com/Richardk2n/pyls-mypy/
 
-This is a plugin for the Palantir's Python Language Server (https://github.com/palantir/python-language-server)
+This is a plugin for the [Python LSP Server](https://github.com/python-lsp/python-lsp-server).
 
 It, like mypy, requires Python 3.6 or newer.
 
@@ -15,7 +15,7 @@ It, like mypy, requires Python 3.6 or newer.
 Installation
 ------------
 
-Install into the same virtualenv as pyls itself.
+Install into the same virtualenv as python-lsp-server itself.
 
 ``pip install mypy-ls``
 
@@ -31,7 +31,7 @@ Depending on your editor, the configuration (found in a file called mypy-ls.cfg 
 ::
 
     {
-	"enabled": True,
-	"live_mode": True,
-	"strict": False
+        "enabled": True,
+        "live_mode": True,
+        "strict": False
     }

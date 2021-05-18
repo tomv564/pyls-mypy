@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-File that contains the pyls plugin mypy-ls.
+File that contains the python-lsp-server plugin mypy-ls.
 
 Created on Fri Jul 10 09:53:57 2020
 
@@ -12,9 +12,9 @@ import os
 import os.path
 import logging
 from mypy import api as mypy_api
-from pyls import hookimpl
-from pyls.workspace import Document, Workspace
-from pyls.config.config import Config
+from pylsp import hookimpl
+from pylsp.workspace import Document, Workspace
+from pylsp.config.config import Config
 from typing import Optional, Dict, Any, IO, List
 import atexit
 
@@ -88,7 +88,7 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
 
 
 @hookimpl
-def pyls_lint(config: Config, workspace: Workspace, document: Document,
+def pylsp_lint(config: Config, workspace: Workspace, document: Document,
               is_saved: bool) -> List[Dict[str, Any]]:
     """
     Lints.
@@ -96,9 +96,9 @@ def pyls_lint(config: Config, workspace: Workspace, document: Document,
     Parameters
     ----------
     config : Config
-        The pyls config.
+        The pylsp config.
     workspace : Workspace
-        The pyls workspace.
+        The pylsp workspace.
     document : Document
         The document to be linted.
     is_saved : bool
@@ -144,14 +144,14 @@ def pyls_lint(config: Config, workspace: Workspace, document: Document,
 
 
 @hookimpl
-def pyls_settings(config: Config) -> Dict[str, Dict[str, Dict[str, str]]]:
+def pylsp_settings(config: Config) -> Dict[str, Dict[str, Dict[str, str]]]:
     """
     Read the settings.
 
     Parameters
     ----------
     config : Config
-        The pyls config.
+        The pylsp config.
 
     Returns
     -------

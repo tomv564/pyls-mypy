@@ -1,2 +1,2 @@
-python-language-server>=0.34.0
+python-lsp-server
 mypy
