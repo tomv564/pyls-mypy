@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-File that contains the pylsp plugin mypy-ls.
+File that contains the python-lsp-server plugin mypy-ls.
 
 Created on Fri Jul 10 09:53:57 2020
 
@@ -27,9 +27,7 @@ mypyConfigFile: Optional[str] = None
 tmpFile: Optional[IO[str]] = None
 
 
-def parse_line(
-    line: str, document: Optional[Document] = None
-) -> Optional[Dict[str, Any]]:
+def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[str, Any]]:
     """
     Return a language-server diagnostic from a line of the Mypy error report.
 
@@ -56,44 +54,42 @@ def parse_line(
         if file_path != "<string>":  # live mode
             # results from other files can be included, but we cannot return
             # them.
-            if document and document.path and not document.path.endswith(file_path):
-                log.warning(
-                    "discarding result for %s against %s", file_path, document.path
-                )
+            if document and document.path and not document.path.endswith(
+                    file_path):
+                log.warning("discarding result for %s against %s", file_path,
+                            document.path)
                 return None
 
         lineno = int(linenoStr or 1) - 1  # 0-based line number
         offset = int(offsetStr or 1) - 1  # 0-based offset
         errno = 2
-        if severity == "error":
+        if severity == 'error':
             errno = 1
         diag: Dict[str, Any] = {
-            "source": "mypy",
-            "range": {
-                "start": {"line": lineno, "character": offset},
+            'source': 'mypy',
+            'range': {
+                'start': {'line': lineno, 'character': offset},
                 # There may be a better solution, but mypy does not provide end
-                "end": {"line": lineno, "character": offset + 1},
+                'end': {'line': lineno, 'character': offset + 1}
             },
-            "message": msg,
-            "severity": errno,
+            'message': msg,
+            'severity': errno
         }
         if document:
             # although mypy does not provide the end of the affected range, we
             # can make a good guess by highlighting the word that Mypy flagged
-            word = document.word_at_position(diag["range"]["start"])
+            word = document.word_at_position(diag['range']['start'])
             if word:
-                diag["range"]["end"]["character"] = diag["range"]["start"][
-                    "character"
-                ] + len(word)
+                diag['range']['end']['character'] = (
+                    diag['range']['start']['character'] + len(word))
 
         return diag
     return None
 
 
 @hookimpl
-def pylsp_lint(
-    config: Config, workspace: Workspace, document: Document, is_saved: bool
-) -> List[Dict[str, Any]]:
+def pylsp_lint(config: Config, workspace: Workspace, document: Document,
+              is_saved: bool) -> List[Dict[str, Any]]:
     """
     Lints.
 
@@ -114,25 +110,27 @@ def pylsp_lint(
         List of the linting data.
 
     """
-    settings = config.plugin_settings("mypy-ls")
-    live_mode = settings.get("live_mode", True)
-    args = ["--incremental", "--show-column-numbers", "--follow-imports", "silent"]
+    settings = config.plugin_settings('mypy-ls')
+    live_mode = settings.get('live_mode', True)
+    args = ['--incremental',
+            '--show-column-numbers',
+            '--follow-imports', 'silent']
 
     global tmpFile
     if live_mode and not is_saved and tmpFile:
         tmpFile = open(tmpFile.name, "w")
         tmpFile.write(document.source)
         tmpFile.close()
-        args.extend(["--shadow-file", document.path, tmpFile.name])
+        args.extend(['--shadow-file', document.path, tmpFile.name])
     elif not is_saved:
         return []
 
     if mypyConfigFile:
-        args.append("--config-file")
+        args.append('--config-file')
         args.append(mypyConfigFile)
     args.append(document.path)
-    if settings.get("strict", False):
-        args.append("--strict")
+    if settings.get('strict', False):
+        args.append('--strict')
 
     report, errors, _ = mypy_api.run(args)
 
@@ -189,11 +187,10 @@ def init(workspace: str) -> Dict[str, str]:
             configuration = eval(file.read())
     global mypyConfigFile
     mypyConfigFile = findConfigFile(workspace, "mypy.ini")
-    if ("enabled" not in configuration or configuration["enabled"]) and (
-        "live_mode" not in configuration or configuration["live_mode"]
-    ):
+    if (("enabled" not in configuration or configuration["enabled"])
+       and ("live_mode" not in configuration or configuration["live_mode"])):
         global tmpFile
-        tmpFile = tempfile.NamedTemporaryFile("w", delete=False)
+        tmpFile = tempfile.NamedTemporaryFile('w', delete=False)
         tmpFile.close()
     return configuration
 
