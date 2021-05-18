@@ -9,7 +9,8 @@ Mypy plugin for PYLS
 
 This is a plugin for the `Python LSP Server`_.
 
-.. _Python LSP Server: https://github.com/python-lsp/python-lsp-server
+.. _`Python LSP Server`: https://github.com/python-lsp/python-lsp-server
+
 It, like mypy, requires Python 3.6 or newer.
 
 
