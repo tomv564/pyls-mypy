@@ -30,10 +30,8 @@ Configuration
 ``dmypy`` (default is False) executes via ``dmypy run`` rather than ``mypy``.
     This uses the ``dmypy`` daemon and may dramatically improve the responsiveness of the ``pylsp`` server, however this currently does not work in ``live_mode``. Enabling this disables ``live_mode``, even for conflicting configs.
 
-``strict`` (defualt is False) refers to the ``strict`` option of ``mypy``.
+``strict`` (default is False) refers to the ``strict`` option of ``mypy``.
     This option often is too strict to be useful.
-
-
 
 Depending on your editor, the configuration (found in a file called mypy-ls.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
