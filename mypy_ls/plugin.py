@@ -17,6 +17,7 @@ from pylsp.workspace import Document, Workspace
 from pylsp.config.config import Config
 from typing import Optional, Dict, Any, IO, List
 import atexit
+import collections
 
 line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
@@ -25,6 +26,13 @@ log = logging.getLogger(__name__)
 mypyConfigFile: Optional[str] = None
 
 tmpFile: Optional[IO[str]] = None
+
+# In non-live-mode the file contents aren't updated.
+# Returning an empty diagnostic clears the diagnostic result,
+# so store a cache of last diagnostics for each file a-la the pylint plugin,
+# so we can return some potentially-stale diagnostics.
+# https://github.com/python-lsp/python-lsp-server/blob/v1.0.1/pylsp/plugins/pylint_lint.py#L55-L62
+last_diagnostics: Dict[str, List] = collections.defaultdict(list)
 
 
 def parse_line(
@@ -115,33 +123,73 @@ def pylsp_lint(
 
     """
     settings = config.plugin_settings("mypy-ls")
+    log.info(
+        "lint settings = %s document.path = %s is_saved = %s",
+        settings,
+        document.path,
+        is_saved,
+    )
+
     live_mode = settings.get("live_mode", True)
-    args = ["--incremental", "--show-column-numbers", "--follow-imports", "silent"]
+    dmypy = settings.get("dmypy", False)
+
+    if dmypy and live_mode:
+        # dmypy can only be efficiently run on files that have been saved, see:
+        # https://github.com/python/mypy/issues/9309
+        log.warning("live_mode is not supported with dmypy, disabling")
+        live_mode = False
+
+    args = ["--show-column-numbers"]
 
     global tmpFile
     if live_mode and not is_saved and tmpFile:
+        log.info("live_mode tmpFile = %s", live_mode)
         tmpFile = open(tmpFile.name, "w")
         tmpFile.write(document.source)
         tmpFile.close()
         args.extend(["--shadow-file", document.path, tmpFile.name])
-    elif not is_saved:
-        return []
+    elif not is_saved and document.path in last_diagnostics:
+        # On-launch the document isn't marked as saved, so fall through and run
+        # the diagnostics anyway even if the file contents may be out of date.
+        log.info(
+            "non-live, returning cached diagnostics len(cached) = %s",
+            last_diagnostics[document.path],
+        )
+        return last_diagnostics[document.path]
 
     if mypyConfigFile:
         args.append("--config-file")
         args.append(mypyConfigFile)
+
     args.append(document.path)
+
     if settings.get("strict", False):
         args.append("--strict")
 
-    report, errors, _ = mypy_api.run(args)
+    if not dmypy:
+        args.extend(["--incremental", "--follow-imports", "silent"])
+
+        log.info("executing mypy args = %s", args)
+        report, errors, _ = mypy_api.run(args)
+    else:
+        args = ["run", "--"] + args
+
+        log.info("executing dmypy args = %s", args)
+        report, errors, _ = mypy_api.run_dmypy(args)
+
+    log.debug("report:\n%s", report)
+    log.debug("errors:\n%s", errors)
 
     diagnostics = []
     for line in report.splitlines():
+        log.debug("parsing: line = %r", line)
         diag = parse_line(line, document)
         if diag:
             diagnostics.append(diag)
 
+    log.info("mypy-ls len(diagnostics) = %s", len(diagnostics))
+
+    last_diagnostics[document.path] = diagnostics
     return diagnostics
 
 
@@ -181,20 +229,28 @@ def init(workspace: str) -> Dict[str, str]:
 
     """
     # On windows the path contains \\ on linux it contains / all the code works with /
+    log.info("init workspace = %s", workspace)
     workspace = workspace.replace("\\", "/")
+
     configuration = {}
     path = findConfigFile(workspace, "mypy-ls.cfg")
     if path:
         with open(path) as file:
             configuration = eval(file.read())
+
     global mypyConfigFile
     mypyConfigFile = findConfigFile(workspace, "mypy.ini")
+    if not mypyConfigFile:
+        mypyConfigFile = findConfigFile(workspace, ".mypy.ini")
+
     if ("enabled" not in configuration or configuration["enabled"]) and (
         "live_mode" not in configuration or configuration["live_mode"]
     ):
         global tmpFile
         tmpFile = tempfile.NamedTemporaryFile("w", delete=False)
         tmpFile.close()
+
+    log.info("mypyConfigFile = %s configuration = %s", mypyConfigFile, configuration)
     return configuration
 
 

@@ -24,17 +24,33 @@ Install into the same virtualenv as python-lsp-server itself.
 Configuration
 -------------
 
-``live_mode`` (default is True) provides type checking as you type. This writes to a tempfile every time a check is done.
+``live_mode`` (default is True) provides type checking as you type.
+    This writes to a tempfile every time a check is done. Turning off ``live_mode`` means you must save your changes for mypy diagnostics to update correctly.
 
-Turning off ``live_mode`` means you must save your changes for mypy diagnostics to update correctly.
+``dmypy`` (default is False) executes via ``dmypy run`` rather than ``mypy``.
+    This uses the ``dmypy`` daemon and may dramatically improve the responsiveness of the ``pylsp`` server, however this currently does not work in ``live_mode``. Enabling this disables ``live_mode``, even for conflicting configs.
 
-Depending on your editor, the configuration (found in a file called mypy-ls.cfg in your workspace or a parent directory) should be roughly like this:
+``strict`` (default is False) refers to the ``strict`` option of ``mypy``.
+    This option often is too strict to be useful.
+
+Depending on your editor, the configuration (found in a file called mypy-ls.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
 
     {
         "enabled": True,
         "live_mode": True,
+        "strict": False
+    }
+
+With ``dmypy`` enabled your config should look like this:
+
+::
+
+    {
+        "enabled": True,
+        "live_mode": False,
+        "dmypy": True,
         "strict": False
     }
 
