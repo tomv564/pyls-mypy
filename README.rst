@@ -33,7 +33,7 @@ Configuration
 ``strict`` (default is False) refers to the ``strict`` option of ``mypy``.
     This option often is too strict to be useful.
 
-Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg or in your workspace or a parent directory) should be roughly like this for a standard configuration:
+Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
 
