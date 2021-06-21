@@ -4,7 +4,7 @@ from pylsp.workspace import Workspace, Document
 from pylsp.config.config import Config
 from pylsp import uris
 from mock import Mock
-from mypy_ls import plugin
+from pylsp_mypy import plugin
 
 DOC_URI = __file__
 DOC_TYPE_ERR = """{}.append(3)
