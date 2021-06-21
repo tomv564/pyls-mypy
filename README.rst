@@ -58,5 +58,6 @@ This project uses `pre-commit`_ to enforce code-quality. After cloning the repos
 After that pre-commit will run `all defined hooks`_ on every ``git commit`` and keep you from committing if there are any errors.
 
 .. _black: https://github.com/psf/black
+.. _rst-linter: https://github.com/Lucas-C/pre-commit-hooks-markup
 .. _pre-commit: https://pre-commit.com/
 .. _all defined hooks: .pre-commit-config.yaml

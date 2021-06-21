@@ -2,6 +2,10 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/psf/black
-    rev: 21.5b1
+    rev: 21.6b0
     hooks:
       - id: black
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-markup
+    rev: v1.0.1
+    hooks:
+      - id: rst-linter
