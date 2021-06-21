@@ -65,7 +65,7 @@ Install development dependencies with (you might want to create a virtualenv fir
 
 The project is formatted with `black`_. You can either configure your IDE to automatically format code with it, run it manually (``black .``) or rely on pre-commit (see below) to format files on git commit.
 
-The project uses two rst tests in order to assure uploadability to pipy: `rst-linter`_ as a pre-commit hook and `rstcheck`_ in a GitHub workflow. This does not catch all errors.
+The project uses two rst tests in order to assure uploadability to pypi: `rst-linter`_ as a pre-commit hook and `rstcheck`_ in a GitHub workflow. This does not catch all errors.
 
 This project uses `pre-commit`_ to enforce code-quality. After cloning the repository install the pre-commit hooks with:
 
