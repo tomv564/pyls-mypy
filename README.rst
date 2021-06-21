@@ -1,11 +1,11 @@
 Mypy plugin for PYLS
 ======================
 
-.. image:: https://badge.fury.io/py/mypy-ls.svg
-    :target: https://badge.fury.io/py/mypy-ls
+.. image:: https://badge.fury.io/py/pylsp-mypy.svg
+    :target: https://badge.fury.io/py/pylsp-mypy
 
-.. image:: https://github.com/Richardk2n/pyls-mypy/workflows/Python%20package/badge.svg?branch=master
-    :target: https://github.com/Richardk2n/pyls-mypy/
+.. image:: https://github.com/Richardk2n/pylsp-mypy/workflows/Python%20package/badge.svg?branch=master
+    :target: https://github.com/Richardk2n/pylsp-mypy/
 
 This is a plugin for the `Python LSP Server`_.
 
@@ -19,7 +19,7 @@ Installation
 
 Install into the same virtualenv as python-lsp-server itself.
 
-``pip install mypy-ls``
+``pip install pylsp-mypy``
 
 Configuration
 -------------
@@ -33,7 +33,7 @@ Configuration
 ``strict`` (default is False) refers to the ``strict`` option of ``mypy``.
     This option often is too strict to be useful.
 
-Depending on your editor, the configuration (found in a file called mypy-ls.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
+Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg or in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
 

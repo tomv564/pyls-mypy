@@ -35,7 +35,7 @@ class FakeConfig(object):
 def test_settings():
     config = FakeConfig()
     settings = plugin.pylsp_settings(config)
-    assert settings == {"plugins": {"mypy-ls": {}}}
+    assert settings == {"plugins": {"pylsp_mypy": {}}}
 
 
 def test_plugin(workspace):

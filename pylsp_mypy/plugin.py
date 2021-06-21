@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-File that contains the python-lsp-server plugin mypy-ls.
+File that contains the python-lsp-server plugin pylsp-mypy.
 
 Created on Fri Jul 10 09:53:57 2020
 
@@ -122,7 +122,7 @@ def pylsp_lint(
         List of the linting data.
 
     """
-    settings = config.plugin_settings("mypy-ls")
+    settings = config.plugin_settings("pylsp_mypy")
     log.info(
         "lint settings = %s document.path = %s is_saved = %s",
         settings,
@@ -199,7 +199,7 @@ def pylsp_lint(
         if diag:
             diagnostics.append(diag)
 
-    log.info("mypy-ls len(diagnostics) = %s", len(diagnostics))
+    log.info("pylsp-mypy len(diagnostics) = %s", len(diagnostics))
 
     last_diagnostics[document.path] = diagnostics
     return diagnostics
@@ -222,7 +222,7 @@ def pylsp_settings(config: Config) -> Dict[str, Dict[str, Dict[str, str]]]:
 
     """
     configuration = init(config._root_path)
-    return {"plugins": {"mypy-ls": configuration}}
+    return {"plugins": {"pylsp_mypy": configuration}}
 
 
 def init(workspace: str) -> Dict[str, str]:
@@ -245,7 +245,7 @@ def init(workspace: str) -> Dict[str, str]:
     workspace = workspace.replace("\\", "/")
 
     configuration = {}
-    path = findConfigFile(workspace, "mypy-ls.cfg")
+    path = findConfigFile(workspace, "pylsp-mypy.cfg")
     if path:
         with open(path) as file:
             configuration = eval(file.read())
