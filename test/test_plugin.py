@@ -41,7 +41,6 @@ def test_settings():
 def test_plugin(workspace):
     config = FakeConfig()
     doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
-    workspace = None
     plugin.pylsp_settings(config)
     diags = plugin.pylsp_lint(config, workspace, doc, is_saved=False)
 
@@ -84,3 +83,40 @@ def test_parse_line_with_context(monkeypatch, word, bounds, workspace):
     assert diag["message"] == '"Request" has no attribute "id"'
     assert diag["range"]["start"] == {"line": 278, "character": bounds[0]}
     assert diag["range"]["end"] == {"line": 278, "character": bounds[1]}
+
+
+def test_multiple_workspaces(tmpdir):
+    DOC_SOURCE = """
+def foo():
+    return
+    unreachable = 1
+"""
+    DOC_ERR_MSG = 'Statement is unreachable'
+
+    # Initialize two workspace folders.
+    folder1 = tmpdir.mkdir('folder1')
+    ws1 = Workspace(uris.from_fs_path(str(folder1)), Mock())
+    ws1._config = Config(ws1.root_uri, {}, 0, {})
+    folder2 = tmpdir.mkdir('folder2')
+    ws2 = Workspace(uris.from_fs_path(str(folder2)), Mock())
+    ws2._config = Config(ws2.root_uri, {}, 0, {})
+
+    # Create configuration file for workspace folder 1.
+    mypy_config = folder1.join('mypy.ini')
+    mypy_config.write('[mypy]\nwarn_unreachable = True')
+
+    # Initialize settings for both folders.
+    plugin.pylsp_settings(ws1._config)
+    plugin.pylsp_settings(ws2._config)
+
+    # Test document in workspace 1 (uses mypy.ini configuration).
+    doc1 = Document(DOC_URI, ws1, DOC_SOURCE)
+    diags = plugin.pylsp_lint(ws1._config, ws1, doc1, is_saved=False)
+    assert len(diags) == 1
+    diag = diags[0]
+    assert diag["message"] == DOC_ERR_MSG
+
+    # Test document in workspace 2 (without mypy.ini configuration)
+    doc2 = Document(DOC_URI, ws2, DOC_SOURCE)
+    diags = plugin.pylsp_lint(ws2._config, ws2, doc2, is_saved=False)
+    assert len(diags) == 0
