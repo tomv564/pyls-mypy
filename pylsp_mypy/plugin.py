@@ -153,9 +153,12 @@ def pylsp_lint(
     args = ["--show-column-numbers"]
 
     global tmpFile
-    if live_mode and not is_saved and tmpFile:
-        log.info("live_mode tmpFile = %s", live_mode)
-        tmpFile = open(tmpFile.name, "w")
+    if live_mode and not is_saved:
+        if tmpFile:
+            tmpFile = open(tmpFile.name, "w")
+        else:
+            tmpFile = tempfile.NamedTemporaryFile("w", delete=False)
+        log.info("live_mode tmpFile = %s", tmpFile.name)
         tmpFile.write(document.source)
         tmpFile.close()
         args.extend(["--shadow-file", document.path, tmpFile.name])
@@ -260,13 +263,6 @@ def init(workspace: str) -> Dict[str, str]:
 
     mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini"])
     mypyConfigFileMap[workspace] = mypyConfigFile
-
-    if ("enabled" not in configuration or configuration["enabled"]) and (
-        "live_mode" not in configuration or configuration["live_mode"]
-    ):
-        global tmpFile
-        tmpFile = tempfile.NamedTemporaryFile("w", delete=False)
-        tmpFile.close()
 
     log.info("mypyConfigFile = %s configuration = %s", mypyConfigFile, configuration)
     return configuration
