@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-File that contains the python-lsp-server plugin mypy-ls.
+File that contains the python-lsp-server plugin pylsp-mypy.
 
 Created on Fri Jul 10 09:53:57 2020
 
@@ -10,6 +10,7 @@ import re
 import tempfile
 import os
 import os.path
+from pathlib import Path
 import logging
 from mypy import api as mypy_api
 from pylsp import hookimpl
@@ -24,7 +25,7 @@ line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 log = logging.getLogger(__name__)
 
 # A mapping from workspace path to config file path
-mypyConfigFileMap: Dict[str, Optional[str]] = dict()
+mypyConfigFileMap: Dict[str, Optional[str]] = {}
 
 tmpFile: Optional[IO[str]] = None
 
@@ -33,12 +34,10 @@ tmpFile: Optional[IO[str]] = None
 # so store a cache of last diagnostics for each file a-la the pylint plugin,
 # so we can return some potentially-stale diagnostics.
 # https://github.com/python-lsp/python-lsp-server/blob/v1.0.1/pylsp/plugins/pylint_lint.py#L55-L62
-last_diagnostics: Dict[str, List] = collections.defaultdict(list)
+last_diagnostics: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list)
 
 
-def parse_line(
-    line: str, document: Optional[Document] = None
-) -> Optional[Dict[str, Any]]:
+def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[str, Any]]:
     """
     Return a language-server diagnostic from a line of the Mypy error report.
 
@@ -66,9 +65,7 @@ def parse_line(
             # results from other files can be included, but we cannot return
             # them.
             if document and document.path and not document.path.endswith(file_path):
-                log.warning(
-                    "discarding result for %s against %s", file_path, document.path
-                )
+                log.warning("discarding result for %s against %s", file_path, document.path)
                 return None
 
         lineno = int(linenoStr or 1) - 1  # 0-based line number
@@ -91,9 +88,7 @@ def parse_line(
             # can make a good guess by highlighting the word that Mypy flagged
             word = document.word_at_position(diag["range"]["start"])
             if word:
-                diag["range"]["end"]["character"] = diag["range"]["start"][
-                    "character"
-                ] + len(word)
+                diag["range"]["end"]["character"] = diag["range"]["start"]["character"] + len(word)
 
         return diag
     return None
@@ -123,7 +118,22 @@ def pylsp_lint(
         List of the linting data.
 
     """
-    settings = config.plugin_settings("mypy-ls")
+    settings = config.plugin_settings("pylsp_mypy")
+    oldSettings1 = config.plugin_settings("mypy-ls")
+    if oldSettings1 != {}:
+        raise DeprecationWarning(
+            "Your configuration uses the namespace mypy-ls, this should be changed to pylsp_mypy"
+        )
+    oldSettings2 = config.plugin_settings("mypy_ls")
+    if oldSettings2 != {}:
+        raise DeprecationWarning(
+            "Your configuration uses the namespace mypy_ls, this should be changed to pylsp_mypy"
+        )
+    if settings == {}:
+        settings = oldSettings1
+        if settings == {}:
+            settings = oldSettings2
+
     log.info(
         "lint settings = %s document.path = %s is_saved = %s",
         settings,
@@ -143,9 +153,12 @@ def pylsp_lint(
     args = ["--show-column-numbers"]
 
     global tmpFile
-    if live_mode and not is_saved and tmpFile:
-        log.info("live_mode tmpFile = %s", live_mode)
-        tmpFile = open(tmpFile.name, "w")
+    if live_mode and not is_saved:
+        if tmpFile:
+            tmpFile = open(tmpFile.name, "w")
+        else:
+            tmpFile = tempfile.NamedTemporaryFile("w", delete=False)
+        log.info("live_mode tmpFile = %s", tmpFile.name)
         tmpFile.write(document.source)
         tmpFile.close()
         args.extend(["--shadow-file", document.path, tmpFile.name])
@@ -181,9 +194,7 @@ def pylsp_lint(
         # In either case, reset to fresh state
         _, _err, _status = mypy_api.run_dmypy(["status"])
         if _status != 0:
-            log.info(
-                "restarting dmypy from status: %s message: %s", _status, _err.strip()
-            )
+            log.info("restarting dmypy from status: %s message: %s", _status, _err.strip())
             mypy_api.run_dmypy(["kill"])
 
         # run to use existing daemon or restart if required
@@ -201,7 +212,7 @@ def pylsp_lint(
         if diag:
             diagnostics.append(diag)
 
-    log.info("mypy-ls len(diagnostics) = %s", len(diagnostics))
+    log.info("pylsp-mypy len(diagnostics) = %s", len(diagnostics))
 
     last_diagnostics[document.path] = diagnostics
     return diagnostics
@@ -224,7 +235,7 @@ def pylsp_settings(config: Config) -> Dict[str, Dict[str, Dict[str, str]]]:
 
     """
     configuration = init(config._root_path)
-    return {"plugins": {"mypy-ls": configuration}}
+    return {"plugins": {"pylsp_mypy": configuration}}
 
 
 def init(workspace: str) -> Dict[str, str]:
@@ -242,33 +253,22 @@ def init(workspace: str) -> Dict[str, str]:
         The plugin config dict.
 
     """
-    # On windows the path contains \\ on linux it contains / all the code works with /
     log.info("init workspace = %s", workspace)
-    workspace = workspace.replace("\\", "/")
 
     configuration = {}
-    path = findConfigFile(workspace, "mypy-ls.cfg")
+    path = findConfigFile(workspace, ["pylsp-mypy.cfg", "mypy-ls.cfg", "mypy_ls.cfg"])
     if path:
         with open(path) as file:
             configuration = eval(file.read())
 
-    mypyConfigFile = findConfigFile(workspace, "mypy.ini")
-    if not mypyConfigFile:
-        mypyConfigFile = findConfigFile(workspace, ".mypy.ini")
+    mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini"])
     mypyConfigFileMap[workspace] = mypyConfigFile
-
-    if ("enabled" not in configuration or configuration["enabled"]) and (
-        "live_mode" not in configuration or configuration["live_mode"]
-    ):
-        global tmpFile
-        tmpFile = tempfile.NamedTemporaryFile("w", delete=False)
-        tmpFile.close()
 
     log.info("mypyConfigFile = %s configuration = %s", mypyConfigFile, configuration)
     return configuration
 
 
-def findConfigFile(path: str, name: str) -> Optional[str]:
+def findConfigFile(path: str, names: List[str]) -> Optional[str]:
     """
     Search for a config file.
 
@@ -279,8 +279,8 @@ def findConfigFile(path: str, name: str) -> Optional[str]:
     ----------
     path : str
         The path where the search starts.
-    name : str
-        The file to be found.
+    names : List[str]
+        The file to be found (or alternative names).
 
     Returns
     -------
@@ -288,15 +288,19 @@ def findConfigFile(path: str, name: str) -> Optional[str]:
         The path where the file has been found or None if no matching file has been found.
 
     """
-    while True:
-        p = f"{path}/{name}"
-        if os.path.isfile(p):
-            return p
-        else:
-            loc = path.rfind("/")
-            if loc == -1:
-                return None
-            path = path[:loc]
+    start = Path(path).joinpath(names[0])  # the join causes the parents to include path
+    for parent in start.parents:
+        for name in names:
+            file = parent.joinpath(name)
+            if file.is_file():
+                if file.name in ["mypy-ls.cfg", "mypy_ls.cfg"]:
+                    raise DeprecationWarning(
+                        f"{str(file)}: {file.name} is no longer supported, you should rename your "
+                        "config file to pylsp-mypy.cfg"
+                    )
+                return str(file)
+
+    return None
 
 
 @atexit.register

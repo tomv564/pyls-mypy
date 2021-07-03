@@ -4,7 +4,7 @@ from pylsp.workspace import Workspace, Document
 from pylsp.config.config import Config
 from pylsp import uris
 from mock import Mock
-from mypy_ls import plugin
+from pylsp_mypy import plugin
 
 DOC_URI = __file__
 DOC_TYPE_ERR = """{}.append(3)
@@ -35,7 +35,7 @@ class FakeConfig(object):
 def test_settings():
     config = FakeConfig()
     settings = plugin.pylsp_settings(config)
-    assert settings == {"plugins": {"mypy-ls": {}}}
+    assert settings == {"plugins": {"pylsp_mypy": {}}}
 
 
 def test_plugin(workspace):
