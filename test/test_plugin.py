@@ -91,19 +91,19 @@ def foo():
     return
     unreachable = 1
 """
-    DOC_ERR_MSG = 'Statement is unreachable'
+    DOC_ERR_MSG = "Statement is unreachable"
 
     # Initialize two workspace folders.
-    folder1 = tmpdir.mkdir('folder1')
+    folder1 = tmpdir.mkdir("folder1")
     ws1 = Workspace(uris.from_fs_path(str(folder1)), Mock())
     ws1._config = Config(ws1.root_uri, {}, 0, {})
-    folder2 = tmpdir.mkdir('folder2')
+    folder2 = tmpdir.mkdir("folder2")
     ws2 = Workspace(uris.from_fs_path(str(folder2)), Mock())
     ws2._config = Config(ws2.root_uri, {}, 0, {})
 
     # Create configuration file for workspace folder 1.
-    mypy_config = folder1.join('mypy.ini')
-    mypy_config.write('[mypy]\nwarn_unreachable = True')
+    mypy_config = folder1.join("mypy.ini")
+    mypy_config.write("[mypy]\nwarn_unreachable = True")
 
     # Initialize settings for both folders.
     plugin.pylsp_settings(ws1._config)
