@@ -1,4 +1,4 @@
-Mypy plugin for PYLS
+Mypy plugin for PYLSP
 ======================
 
 .. image:: https://badge.fury.io/py/pylsp-mypy.svg
