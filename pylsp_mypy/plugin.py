@@ -23,7 +23,8 @@ line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
 log = logging.getLogger(__name__)
 
-mypyConfigFile: Optional[str] = None
+# A mapping from workspace path to config file path
+mypyConfigFileMap: Dict[str, Optional[str]] = dict()
 
 tmpFile: Optional[IO[str]] = None
 
@@ -157,6 +158,7 @@ def pylsp_lint(
         )
         return last_diagnostics[document.path]
 
+    mypyConfigFile = mypyConfigFileMap.get(workspace.root_path)
     if mypyConfigFile:
         args.append("--config-file")
         args.append(mypyConfigFile)
@@ -250,10 +252,10 @@ def init(workspace: str) -> Dict[str, str]:
         with open(path) as file:
             configuration = eval(file.read())
 
-    global mypyConfigFile
     mypyConfigFile = findConfigFile(workspace, "mypy.ini")
     if not mypyConfigFile:
         mypyConfigFile = findConfigFile(workspace, ".mypy.ini")
+    mypyConfigFileMap[workspace] = mypyConfigFile
 
     if ("enabled" not in configuration or configuration["enabled"]) and (
         "live_mode" not in configuration or configuration["live_mode"]
