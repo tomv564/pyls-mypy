@@ -33,6 +33,9 @@ Configuration
 ``strict`` (default is False) refers to the ``strict`` option of ``mypy``.
     This option often is too strict to be useful.
 
+``overrides`` (default is ``[]``) specifies a list of alternate or supplemental command-line options.
+    This modifies the options passed to ``mypy`` or the mypy-specific ones passed to ``dmypy run``. When present, the special boolean member ``True`` is replaced with the command-line options that would've been passed had ``overrides`` not been specified.
+
 Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
@@ -53,6 +56,16 @@ With ``dmypy`` enabled your config should look like this:
         "dmypy": True,
         "strict": False
     }
+
+With ``overrides`` specified, your config should resemble this:
+
+::
+
+    {
+        ...,
+        "overrides": ["--python-executable", "/home/me/bin/python", True]
+    }
+
 
 Developing
 -------------
