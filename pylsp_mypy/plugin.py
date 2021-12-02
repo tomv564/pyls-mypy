@@ -10,9 +10,9 @@ import re
 import tempfile
 import os
 import os.path
+import subprocess
 from pathlib import Path
 import logging
-from mypy import api as mypy_api
 from pylsp import hookimpl
 from pylsp.workspace import Document, Workspace
 from pylsp.config.config import Config
@@ -190,22 +190,28 @@ def pylsp_lint(
         args.extend(["--incremental", "--follow-imports", "silent"])
 
         log.info("executing mypy args = %s", args)
-        report, errors, _ = mypy_api.run(args)
+        completed_process = subprocess.run(["mypy", *args], capture_output=True)
+        report = completed_process.stdout.decode()
+        errors = completed_process.stderr.decode()
     else:
         # If dmypy daemon is non-responsive calls to run will block.
         # Check daemon status, if non-zero daemon is dead or hung.
         # If daemon is hung, kill will reset
         # If daemon is dead/absent, kill will no-op.
         # In either case, reset to fresh state
-        _, _err, _status = mypy_api.run_dmypy(["status"])
+        completed_process = subprocess.run(["dmypy", *args], capture_output=True)
+        _err = completed_process.stderr.decode()
+        _status = completed_process.returncode
         if _status != 0:
             log.info("restarting dmypy from status: %s message: %s", _status, _err.strip())
-            mypy_api.run_dmypy(["kill"])
+            subprocess.run(["dmypy", "kill"])
 
         # run to use existing daemon or restart if required
         args = ["run", "--"] + args
         log.info("dmypy run args = %s", args)
-        report, errors, _ = mypy_api.run_dmypy(args)
+        completed_process = subprocess.run(["dmypy", *args], capture_output=True)
+        report = completed_process.stdout.decode()
+        errors = completed_process.stderr.decode()
 
     log.debug("report:\n%s", report)
     log.debug("errors:\n%s", errors)
