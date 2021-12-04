@@ -190,7 +190,9 @@ def pylsp_lint(
         args.extend(["--incremental", "--follow-imports", "silent"])
 
         log.info("executing mypy args = %s", args)
-        completed_process = subprocess.run(["mypy", *args], capture_output=True)
+        completed_process = subprocess.run(
+            ["mypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         report = completed_process.stdout.decode()
         errors = completed_process.stderr.decode()
     else:
@@ -199,7 +201,7 @@ def pylsp_lint(
         # If daemon is hung, kill will reset
         # If daemon is dead/absent, kill will no-op.
         # In either case, reset to fresh state
-        completed_process = subprocess.run(["dmypy", *args], capture_output=True)
+        completed_process = subprocess.run(["dmypy", *args], stderr=subprocess.PIPE)
         _err = completed_process.stderr.decode()
         _status = completed_process.returncode
         if _status != 0:
@@ -209,7 +211,9 @@ def pylsp_lint(
         # run to use existing daemon or restart if required
         args = ["run", "--"] + args
         log.info("dmypy run args = %s", args)
-        completed_process = subprocess.run(["dmypy", *args], capture_output=True)
+        completed_process = subprocess.run(
+            ["dmypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         report = completed_process.stdout.decode()
         errors = completed_process.stderr.decode()
 
