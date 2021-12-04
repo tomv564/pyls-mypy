@@ -3,7 +3,7 @@ import pytest
 from pylsp.workspace import Workspace, Document
 from pylsp.config.config import Config
 from pylsp import uris
-from mock import Mock
+from unittest.mock import Mock
 from pylsp_mypy import plugin
 
 DOC_URI = __file__
