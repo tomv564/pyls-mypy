@@ -129,27 +129,25 @@ def foo():
 
 
 def test_apply_overrides():
-    assert list(plugin.apply_overrides(["1", "2"], [])) == []
-    assert list(plugin.apply_overrides(["1", "2"], ["a"])) == ["a"]
-    assert list(plugin.apply_overrides(["1", "2"], ["a", True])) == ["a", "1", "2"]
-    assert list(plugin.apply_overrides(["1", "2"], [True, "a"])) == ["1", "2", "a"]
-    assert list(plugin.apply_overrides(["1"], ["a", True, "b"])) == ["a", "1", "b"]
+    assert plugin.apply_overrides(["1", "2"], []) == []
+    assert plugin.apply_overrides(["1", "2"], ["a"]) == ["a"]
+    assert plugin.apply_overrides(["1", "2"], ["a", True]) == ["a", "1", "2"]
+    assert plugin.apply_overrides(["1", "2"], [True, "a"]) == ["1", "2", "a"]
+    assert plugin.apply_overrides(["1"], ["a", True, "b"]) == ["a", "1", "b"]
 
 
 def test_option_overrides(tmpdir, diag_mp, workspace):
     import sys
-    from textwrap import dedent
 
     sentinel = tmpdir / "ran"
 
-    source = dedent(
-        """\
-        #!{}
-        import os, sys, pathlib
-        pathlib.Path({!r}).touch()
-        os.execv({!r}, sys.argv)
-        """
-    ).format(sys.executable, str(sentinel), sys.executable)
+    source = """\
+#!{}
+import os, sys, pathlib
+pathlib.Path({!r}).touch()
+os.execv({!r}, sys.argv)\n"""
+
+    source = source.format(sys.executable, str(sentinel), sys.executable)
 
     wrapper = tmpdir / "bin/wrapper"
     wrapper.write(source, ensure=True)
