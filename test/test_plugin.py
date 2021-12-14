@@ -138,20 +138,23 @@ def test_apply_overrides():
 
 def test_option_overrides(tmpdir, diag_mp, workspace):
     import sys
+    from textwrap import dedent
+    from stat import S_IRWXU
 
     sentinel = tmpdir / "ran"
 
-    source = """\
-#!{}
-import os, sys, pathlib
-pathlib.Path({!r}).touch()
-os.execv({!r}, sys.argv)\n"""
-
-    source = source.format(sys.executable, str(sentinel), sys.executable)
+    source = dedent(
+        """\
+        #!{}
+        import os, sys, pathlib
+        pathlib.Path({!r}).touch()
+        os.execv({!r}, sys.argv)
+        """
+    ).format(sys.executable, str(sentinel), sys.executable)
 
     wrapper = tmpdir / "bin/wrapper"
     wrapper.write(source, ensure=True)
-    wrapper.chmod(0o700)
+    wrapper.chmod(S_IRWXU)
 
     overrides = ["--python-executable", wrapper.strpath, True]
     diag_mp.setattr(
