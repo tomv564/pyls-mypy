@@ -22,6 +22,7 @@ import atexit
 import collections
 import warnings
 import shutil
+import ast
 
 line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
@@ -307,7 +308,7 @@ def init(workspace: str) -> Dict[str, str]:
     path = findConfigFile(workspace, ["pylsp-mypy.cfg", "mypy-ls.cfg", "mypy_ls.cfg"])
     if path:
         with open(path) as file:
-            configuration = eval(file.read())
+            configuration = ast.literal_eval(file.read())
 
     mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini"])
     mypyConfigFileMap[workspace] = mypyConfigFile
