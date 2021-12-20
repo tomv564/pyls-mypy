@@ -1,5 +1,5 @@
 python-lsp-server
-mypy < 0.920
+mypy
 black
 pre-commit
 rstcheck
