@@ -110,7 +110,7 @@ def foo():
 
     # Create configuration file for workspace folder 1.
     mypy_config = folder1.join("mypy.ini")
-    mypy_config.write("[mypy]\nwarn_unreachable = True")
+    mypy_config.write("[mypy]\nwarn_unreachable = True\ncheck_untyped_defs = True")
 
     # Initialize settings for both folders.
     plugin.pylsp_settings(ws1._config)
