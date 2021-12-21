@@ -5,6 +5,7 @@ from pylsp.config.config import Config
 from pylsp import uris
 from unittest.mock import Mock
 from pylsp_mypy import plugin
+import collections
 
 DOC_URI = __file__
 DOC_TYPE_ERR = """{}.append(3)
@@ -18,7 +19,7 @@ TEST_LINE_WITHOUT_LINE = "test_plugin.py: " 'error: "Request" has no attribute "
 
 @pytest.fixture
 def diag_mp(monkeypatch):
-    monkeypatch.setattr(plugin, "last_diagnostics", plugin.collections.defaultdict(list))
+    monkeypatch.setattr(plugin, "last_diagnostics", collections.defaultdict(list))
     return monkeypatch
 
 

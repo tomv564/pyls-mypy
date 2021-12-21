@@ -57,12 +57,12 @@ With ``dmypy`` enabled your config should look like this:
         "strict": False
     }
 
-With ``overrides`` specified, your config should resemble this:
+With ``overrides`` specified (for example to tell mypy to use a different python than the currently active venv), your config could look like this:
 
 ::
 
     {
-        ...,
+        "enabled": True,
         "overrides": ["--python-executable", "/home/me/bin/python", True]
     }
 
