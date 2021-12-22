@@ -98,6 +98,18 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
     return None
 
 
+def apply_overrides(args: List[str], overrides: List[Any]) -> List[str]:
+    """Replace or combine default command-line options with overrides."""
+    overrides_iterator = iter(overrides)
+    if True not in overrides_iterator:
+        return overrides
+    # If True is in the list, the if above leaves the iterator at the element after True,
+    # therefore, the list below only contains the elements after the True
+    rest = list(overrides_iterator)
+    # slice of the True and the rest, add the args, add the rest
+    return overrides[: -(len(rest) + 1)] + args + rest
+
+
 @hookimpl
 def pylsp_lint(
     config: Config, workspace: Workspace, document: Document, is_saved: bool
@@ -189,8 +201,11 @@ def pylsp_lint(
     if settings.get("strict", False):
         args.append("--strict")
 
+    overrides = settings.get("overrides", [True])
+
     if not dmypy:
         args.extend(["--incremental", "--follow-imports", "silent"])
+        args = apply_overrides(args, overrides)
 
         if shutil.which("mypy"):
             # mypy exists on path
@@ -212,10 +227,13 @@ def pylsp_lint(
         # If daemon is hung, kill will reset
         # If daemon is dead/absent, kill will no-op.
         # In either case, reset to fresh state
+
         if shutil.which("dmypy"):
             # dmypy exists on path
             # -> use mypy on path
-            completed_process = subprocess.run(["dmypy", *args], stderr=subprocess.PIPE)
+            completed_process = subprocess.run(
+                ["dmypy", *apply_overrides(args, overrides)], stderr=subprocess.PIPE
+            )
             _err = completed_process.stderr.decode()
             _status = completed_process.returncode
             if _status != 0:
@@ -234,7 +252,7 @@ def pylsp_lint(
                 mypy_api.run_dmypy(["kill"])
 
         # run to use existing daemon or restart if required
-        args = ["run", "--"] + args
+        args = ["run", "--"] + apply_overrides(args, overrides)
 
         if shutil.which("dmypy"):
             # dmypy exists on path

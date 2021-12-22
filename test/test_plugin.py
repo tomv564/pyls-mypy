@@ -5,6 +5,7 @@ from pylsp.config.config import Config
 from pylsp import uris
 from unittest.mock import Mock
 from pylsp_mypy import plugin
+import collections
 
 DOC_URI = __file__
 DOC_TYPE_ERR = """{}.append(3)
@@ -14,6 +15,13 @@ TYPE_ERR_MSG = '"Dict[<nothing>, <nothing>]" has no attribute "append"'
 TEST_LINE = 'test_plugin.py:279:8: error: "Request" has no attribute "id"'
 TEST_LINE_WITHOUT_COL = "test_plugin.py:279: " 'error: "Request" has no attribute "id"'
 TEST_LINE_WITHOUT_LINE = "test_plugin.py: " 'error: "Request" has no attribute "id"'
+
+
+@pytest.fixture
+def last_diagnostics_monkeypatch(monkeypatch):
+    # gets called before every test altering last_diagnostics in order to reset it
+    monkeypatch.setattr(plugin, "last_diagnostics", collections.defaultdict(list))
+    return monkeypatch
 
 
 @pytest.fixture
@@ -38,7 +46,7 @@ def test_settings():
     assert settings == {"plugins": {"pylsp_mypy": {}}}
 
 
-def test_plugin(workspace):
+def test_plugin(workspace, last_diagnostics_monkeypatch):
     config = FakeConfig()
     doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
     plugin.pylsp_settings(config)
@@ -85,7 +93,7 @@ def test_parse_line_with_context(monkeypatch, word, bounds, workspace):
     assert diag["range"]["end"] == {"line": 278, "character": bounds[1]}
 
 
-def test_multiple_workspaces(tmpdir):
+def test_multiple_workspaces(tmpdir, last_diagnostics_monkeypatch):
     DOC_SOURCE = """
 def foo():
     return
@@ -120,3 +128,85 @@ def foo():
     doc2 = Document(DOC_URI, ws2, DOC_SOURCE)
     diags = plugin.pylsp_lint(ws2._config, ws2, doc2, is_saved=False)
     assert len(diags) == 0
+
+
+def test_apply_overrides():
+    assert plugin.apply_overrides(["1", "2"], []) == []
+    assert plugin.apply_overrides(["1", "2"], ["a"]) == ["a"]
+    assert plugin.apply_overrides(["1", "2"], ["a", True]) == ["a", "1", "2"]
+    assert plugin.apply_overrides(["1", "2"], [True, "a"]) == ["1", "2", "a"]
+    assert plugin.apply_overrides(["1"], ["a", True, "b"]) == ["a", "1", "b"]
+
+
+def test_option_overrides(tmpdir, last_diagnostics_monkeypatch, workspace):
+    import sys
+    from textwrap import dedent
+    from stat import S_IRWXU
+
+    sentinel = tmpdir / "ran"
+
+    source = dedent(
+        """\
+        #!{}
+        import os, sys, pathlib
+        pathlib.Path({!r}).touch()
+        os.execv({!r}, sys.argv)
+        """
+    ).format(sys.executable, str(sentinel), sys.executable)
+
+    wrapper = tmpdir / "bin/wrapper"
+    wrapper.write(source, ensure=True)
+    wrapper.chmod(S_IRWXU)
+
+    overrides = ["--python-executable", wrapper.strpath, True]
+    last_diagnostics_monkeypatch.setattr(
+        FakeConfig,
+        "plugin_settings",
+        lambda _, p: {"overrides": overrides} if p == "pylsp_mypy" else {},
+    )
+
+    assert not sentinel.exists()
+
+    diags = plugin.pylsp_lint(
+        config=FakeConfig(),
+        workspace=workspace,
+        document=Document(DOC_URI, workspace, DOC_TYPE_ERR),
+        is_saved=False,
+    )
+    assert len(diags) == 1
+    assert sentinel.exists()
+
+
+def test_option_overrides_dmypy(last_diagnostics_monkeypatch, workspace):
+    overrides = ["--python-executable", "/tmp/fake", True]
+    last_diagnostics_monkeypatch.setattr(
+        FakeConfig,
+        "plugin_settings",
+        lambda _, p: {
+            "overrides": overrides,
+            "dmypy": True,
+            "live_mode": False,
+        }
+        if p == "pylsp_mypy"
+        else {},
+    )
+
+    m = Mock(wraps=lambda a, **_: Mock(returncode=0, **{"stdout.decode": lambda: ""}))
+    last_diagnostics_monkeypatch.setattr(plugin.subprocess, "run", m)
+
+    plugin.pylsp_lint(
+        config=FakeConfig(),
+        workspace=workspace,
+        document=Document(DOC_URI, workspace, DOC_TYPE_ERR),
+        is_saved=False,
+    )
+    expected = [
+        "dmypy",
+        "run",
+        "--",
+        "--python-executable",
+        "/tmp/fake",
+        "--show-column-numbers",
+        __file__,
+    ]
+    m.assert_called_with(expected, stderr=-1, stdout=-1)
