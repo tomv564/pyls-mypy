@@ -6,23 +6,24 @@ Created on Fri Jul 10 09:53:57 2020
 
 @author: Richard Kellnberger
 """
-import re
-import tempfile
-import os
-import os.path
-import subprocess
-from pathlib import Path
-import logging
-from mypy import api as mypy_api
-from pylsp import hookimpl
-from pylsp.workspace import Document, Workspace
-from pylsp.config.config import Config
-from typing import Optional, Dict, Any, IO, List
+import ast
 import atexit
 import collections
-import warnings
+import logging
+import os
+import os.path
+import re
 import shutil
-import ast
+import subprocess
+import tempfile
+import warnings
+from pathlib import Path
+from typing import IO, Any, Dict, List, Optional
+
+from mypy import api as mypy_api
+from pylsp import hookimpl
+from pylsp.config.config import Config
+from pylsp.workspace import Document, Workspace
 
 line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 

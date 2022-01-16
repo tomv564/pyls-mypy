@@ -3,3 +3,4 @@ mypy
 black
 pre-commit
 rstcheck
+isort

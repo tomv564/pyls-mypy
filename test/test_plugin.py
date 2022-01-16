@@ -1,11 +1,12 @@
-import pytest
-
-from pylsp.workspace import Workspace, Document
-from pylsp.config.config import Config
-from pylsp import uris
-from unittest.mock import Mock
-from pylsp_mypy import plugin
 import collections
+from unittest.mock import Mock
+
+import pytest
+from pylsp import uris
+from pylsp.config.config import Config
+from pylsp.workspace import Document, Workspace
+
+from pylsp_mypy import plugin
 
 DOC_URI = __file__
 DOC_TYPE_ERR = """{}.append(3)
@@ -140,8 +141,8 @@ def test_apply_overrides():
 
 def test_option_overrides(tmpdir, last_diagnostics_monkeypatch, workspace):
     import sys
-    from textwrap import dedent
     from stat import S_IRWXU
+    from textwrap import dedent
 
     sentinel = tmpdir / "ran"
 

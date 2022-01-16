@@ -9,3 +9,7 @@ repos:
     rev: v1.0.1
     hooks:
       - id: rst-linter
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort

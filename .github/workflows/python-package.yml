@@ -38,6 +38,10 @@ jobs:
       run: |
         # stop the build if black detect any changes
         black --check .
+    - name: Check isort sorting
+      run: |
+        # stop the build if isort detect any changes
+        isort . --check --diff
     - name: Test with pytest
       run: |
         pytest
