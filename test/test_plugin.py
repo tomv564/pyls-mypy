@@ -1,4 +1,5 @@
 import collections
+import os
 from unittest.mock import Mock
 
 import pytest
@@ -35,7 +36,7 @@ def workspace(tmpdir):
 
 class FakeConfig(object):
     def __init__(self):
-        self._root_path = "C:"
+        self._root_path = "C:" if os.name == "nt" else "/"
 
     def plugin_settings(self, plugin, document_path=None):
         return {}
