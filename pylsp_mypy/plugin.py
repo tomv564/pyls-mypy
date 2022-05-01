@@ -380,7 +380,7 @@ def findConfigFile(path: str, names: List[str]) -> Optional[str]:
                         toml.load(file)
                         .get("tool", {})
                         .get("pylsp-mypy" if isPluginConfig else "mypy")
-                        is None
+                        is not None
                     )
                     if not configPresent:
                         continue
