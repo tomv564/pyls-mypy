@@ -1,5 +1,6 @@
 python-lsp-server
 mypy
+toml
 black
 pre-commit
 rstcheck

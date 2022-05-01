@@ -20,6 +20,7 @@ import warnings
 from pathlib import Path
 from typing import IO, Any, Dict, List, Optional
 
+import toml
 from mypy import api as mypy_api
 from pylsp import hookimpl
 from pylsp.config.config import Config
@@ -324,12 +325,17 @@ def init(workspace: str) -> Dict[str, str]:
     log.info("init workspace = %s", workspace)
 
     configuration = {}
-    path = findConfigFile(workspace, ["pylsp-mypy.cfg", "mypy-ls.cfg", "mypy_ls.cfg"])
+    path = findConfigFile(
+        workspace, ["pylsp-mypy.cfg", "mypy-ls.cfg", "mypy_ls.cfg", "pyproject.toml"]
+    )
     if path:
-        with open(path) as file:
-            configuration = ast.literal_eval(file.read())
+        if "pyproject.toml" in path:
+            configuration = toml.load(path).get("tool").get("pylsp-mypy")
+        else:
+            with open(path) as file:
+                configuration = ast.literal_eval(file.read())
 
-    mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini"])
+    mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini", "pyproject.toml"])
     mypyConfigFileMap[workspace] = mypyConfigFile
 
     log.info("mypyConfigFile = %s configuration = %s", mypyConfigFile, configuration)
@@ -368,6 +374,16 @@ def findConfigFile(path: str, names: List[str]) -> Optional[str]:
                             "config file to pylsp-mypy.cfg"
                         )
                     )
+                if file.name == "pyproject.toml":
+                    isPluginConfig = "pylsp-mypy.cfg" in names
+                    configPresent = (
+                        toml.load(file)
+                        .get("tool", {})
+                        .get("pylsp-mypy" if isPluginConfig else "mypy")
+                        is None
+                    )
+                    if not configPresent:
+                        continue
                 return str(file)
 
     return None
