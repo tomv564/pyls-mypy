@@ -21,3 +21,14 @@ line_length = 100
 enabled = true
 live_mode = true
 strict = true
+
+[tool.mypy]
+python_version = "3.6"
+
+[[tool.mypy.overrides]]
+module = "pylsp.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pylsp_mypy.plugin"
+disallow_untyped_decorators = false

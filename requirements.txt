@@ -1,6 +1,7 @@
 python-lsp-server
 mypy
 toml
+types-toml
 black
 pre-commit
 rstcheck
