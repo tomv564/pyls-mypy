@@ -4,8 +4,8 @@ Mypy plugin for PYLSP
 .. image:: https://badge.fury.io/py/pylsp-mypy.svg
     :target: https://badge.fury.io/py/pylsp-mypy
 
-.. image:: https://github.com/Richardk2n/pylsp-mypy/workflows/Python%20package/badge.svg?branch=master
-    :target: https://github.com/Richardk2n/pylsp-mypy/
+.. image:: https://github.com/python-lsp/pylsp-mypy/workflows/Python%20package/badge.svg?branch=master
+    :target: https://github.com/python-lsp/pylsp-mypy/
 
 This is a plugin for the `Python LSP Server`_.
 
