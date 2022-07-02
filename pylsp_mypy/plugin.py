@@ -46,7 +46,7 @@ last_diagnostics: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list
 # This flag is new in python 3.7
 # THis flag only exists on Windows
 windows_flag: Dict[str, int] = (
-    {"startupinfo": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}  # type: ignore
+    {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}  # type: ignore
 )
 
 
