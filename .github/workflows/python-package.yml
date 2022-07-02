@@ -9,10 +9,11 @@ on:
   pull_request:
     branches: [ master ]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  defaults:
-    run:
-      shell: bash
 
   testCode:
 
