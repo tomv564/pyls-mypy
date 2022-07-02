@@ -16,7 +16,6 @@ import re
 import shutil
 import subprocess
 import tempfile
-import warnings
 from pathlib import Path
 from typing import IO, Any, Dict, List, Optional
 
@@ -147,17 +146,13 @@ def pylsp_lint(
     settings = config.plugin_settings("pylsp_mypy")
     oldSettings1 = config.plugin_settings("mypy-ls")
     if oldSettings1 != {}:
-        warnings.warn(
-            DeprecationWarning(
-                "Your configuration uses the namespace mypy-ls, this should be changed to pylsp_mypy"
-            )
+        raise DeprecationWarning(
+            "Your configuration uses the namespace mypy-ls, this should be changed to pylsp_mypy"
         )
     oldSettings2 = config.plugin_settings("mypy_ls")
     if oldSettings2 != {}:
-        warnings.warn(
-            DeprecationWarning(
-                "Your configuration uses the namespace mypy_ls, this should be changed to pylsp_mypy"
-            )
+        raise DeprecationWarning(
+            "Your configuration uses the namespace mypy_ls, this should be changed to pylsp_mypy"
         )
     if settings == {}:
         settings = oldSettings1
@@ -376,11 +371,9 @@ def findConfigFile(path: str, names: List[str]) -> Optional[str]:
             file = parent.joinpath(name)
             if file.is_file():
                 if file.name in ["mypy-ls.cfg", "mypy_ls.cfg"]:
-                    warnings.warn(
-                        DeprecationWarning(
-                            f"{str(file)}: {file.name} is no longer supported, you should rename your "
-                            "config file to pylsp-mypy.cfg"
-                        )
+                    raise DeprecationWarning(
+                        f"{str(file)}: {file.name} is no longer supported, you should rename your "
+                        "config file to pylsp-mypy.cfg or preferably use a pyproject.toml instead."
                     )
                 if file.name == "pyproject.toml":
                     isPluginConfig = "pylsp-mypy.cfg" in names
