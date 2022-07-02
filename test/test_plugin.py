@@ -1,5 +1,8 @@
 import collections
 import os
+import subprocess
+from pathlib import Path
+from typing import Dict
 from unittest.mock import Mock
 
 import pytest
@@ -9,7 +12,7 @@ from pylsp.workspace import Document, Workspace
 
 from pylsp_mypy import plugin
 
-DOC_URI = __file__
+DOC_URI = f"file:/{Path(__file__)}"
 DOC_TYPE_ERR = """{}.append(3)
 """
 TYPE_ERR_MSG = '"Dict[<nothing>, <nothing>]" has no attribute "append"'
@@ -17,6 +20,10 @@ TYPE_ERR_MSG = '"Dict[<nothing>, <nothing>]" has no attribute "append"'
 TEST_LINE = 'test_plugin.py:279:8: error: "Request" has no attribute "id"'
 TEST_LINE_WITHOUT_COL = "test_plugin.py:279: " 'error: "Request" has no attribute "id"'
 TEST_LINE_WITHOUT_LINE = "test_plugin.py: " 'error: "Request" has no attribute "id"'
+
+windows_flag: Dict[str, int] = (
+    {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}  # type: ignore
+)
 
 
 @pytest.fixture
@@ -196,10 +203,12 @@ def test_option_overrides_dmypy(last_diagnostics_monkeypatch, workspace):
     m = Mock(wraps=lambda a, **_: Mock(returncode=0, **{"stdout.decode": lambda: ""}))
     last_diagnostics_monkeypatch.setattr(plugin.subprocess, "run", m)
 
+    document = Document(DOC_URI, workspace, DOC_TYPE_ERR)
+
     plugin.pylsp_lint(
         config=FakeConfig(),
         workspace=workspace,
-        document=Document(DOC_URI, workspace, DOC_TYPE_ERR),
+        document=document,
         is_saved=False,
     )
     expected = [
@@ -209,6 +218,6 @@ def test_option_overrides_dmypy(last_diagnostics_monkeypatch, workspace):
         "--python-executable",
         "/tmp/fake",
         "--show-column-numbers",
-        __file__,
+        document.path,
     ]
-    m.assert_called_with(expected, stderr=-1, stdout=-1)
+    m.assert_called_with(expected, stderr=-1, stdout=-1, **windows_flag)
