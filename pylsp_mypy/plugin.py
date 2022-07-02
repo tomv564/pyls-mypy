@@ -42,6 +42,14 @@ tmpFile: Optional[IO[str]] = None
 # https://github.com/python-lsp/python-lsp-server/blob/v1.0.1/pylsp/plugins/pylint_lint.py#L55-L62
 last_diagnostics: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list)
 
+# Windows started opening opening a cmd-like window for every subprocess call
+# This flag prevents that.
+# This flag is new in python 3.7
+# THis flag only exists on Windows
+windows_flag: Dict[str, int] = (
+    {"startupinfo": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}  # type: ignore
+)
+
 
 def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[str, Any]]:
     """
@@ -214,7 +222,7 @@ def pylsp_lint(
             # -> use mypy on path
             log.info("executing mypy args = %s on path", args)
             completed_process = subprocess.run(
-                ["mypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                ["mypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE, **windows_flag
             )
             report = completed_process.stdout.decode()
             errors = completed_process.stderr.decode()
@@ -234,7 +242,7 @@ def pylsp_lint(
             # dmypy exists on path
             # -> use mypy on path
             completed_process = subprocess.run(
-                ["dmypy", *apply_overrides(args, overrides)], stderr=subprocess.PIPE
+                ["dmypy", *apply_overrides(args, overrides)], stderr=subprocess.PIPE, **windows_flag
             )
             _err = completed_process.stderr.decode()
             _status = completed_process.returncode
@@ -242,7 +250,7 @@ def pylsp_lint(
                 log.info(
                     "restarting dmypy from status: %s message: %s via path", _status, _err.strip()
                 )
-                subprocess.run(["dmypy", "kill"])
+                subprocess.run(["dmypy", "kill"], **windows_flag)
         else:
             # dmypy does not exist on path, but must exist in the env pylsp-mypy is installed in
             # -> use dmypy via api
@@ -261,7 +269,7 @@ def pylsp_lint(
             # -> use mypy on path
             log.info("dmypy run args = %s via path", args)
             completed_process = subprocess.run(
-                ["dmypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                ["dmypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE, **windows_flag
             )
             report = completed_process.stdout.decode()
             errors = completed_process.stderr.decode()
