@@ -11,7 +11,7 @@ This is a plugin for the `Python LSP Server`_.
 
 .. _`Python LSP Server`: https://github.com/python-lsp/python-lsp-server
 
-It, like mypy, requires Python 3.6 or newer.
+It, like mypy, requires Python 3.7 or newer.
 
 
 Installation
@@ -36,6 +36,16 @@ Configuration
 ``overrides`` (default is ``[True]``) specifies a list of alternate or supplemental command-line options.
     This modifies the options passed to ``mypy`` or the mypy-specific ones passed to ``dmypy run``. When present, the special boolean member ``True`` is replaced with the command-line options that would've been passed had ``overrides`` not been specified. Later options take precedence, which allows for replacing or negating individual default options (see ``mypy.main:process_options`` and ``mypy --help | grep inverse``).
 
+This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
+
+::
+
+    [tool.pylsp-mypy]
+    enabled = true
+    live_mode = true
+    strict = true
+
+A ``pyproject.toml`` does not conflict with the legacy config file given that it does not contain a ``pylsp-mypy`` section. The following explanation uses the syntax of the legacy config file. However, all these options also apply to the ``pyproject.toml`` configuration (note the lowercase bools).
 Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
