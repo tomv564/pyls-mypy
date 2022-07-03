@@ -43,7 +43,7 @@ def workspace(tmpdir):
 
 class FakeConfig(object):
     def __init__(self):
-        self._root_path = "C:" if os.name == "nt" else "/"
+        self._root_path = "C://" if os.name == "nt" else "/"
 
     def plugin_settings(self, plugin, document_path=None):
         return {}
@@ -147,6 +147,7 @@ def test_apply_overrides():
     assert plugin.apply_overrides(["1"], ["a", True, "b"]) == ["a", "1", "b"]
 
 
+@pytest.mark.skipif(os.name == "nt", reason = "Not working on Windows due to test design.")
 def test_option_overrides(tmpdir, last_diagnostics_monkeypatch, workspace):
     import sys
     from stat import S_IRWXU
