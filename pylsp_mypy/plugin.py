@@ -278,6 +278,22 @@ def pylsp_lint(
     log.debug("errors:\n%s", errors)
 
     diagnostics = []
+
+    # Expose generic mypy error on the first line.
+    if errors:
+        diagnostics.append(
+            {
+                "source": "mypy",
+                "range": {
+                    "start": {"line": 0, "character": 0},
+                    # Client is supposed to clip end column to line length.
+                    "end": {"line": 0, "character": 1000},
+                },
+                "message": errors,
+                "severity": 1,  # Error
+            }
+        )
+
     for line in report.splitlines():
         log.debug("parsing: line = %r", line)
         diag = parse_line(line, document)
