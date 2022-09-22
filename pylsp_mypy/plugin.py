@@ -245,7 +245,9 @@ def pylsp_lint(
             exit_status = completed_process.returncode
             if exit_status != 0:
                 log.info(
-                    "restarting dmypy from status: %s message: %s via path", exit_status, errors.strip()
+                    "restarting dmypy from status: %s message: %s via path",
+                    exit_status,
+                    errors.strip(),
                 )
                 subprocess.run(["dmypy", "kill"], **windows_flag)
         else:
@@ -254,7 +256,9 @@ def pylsp_lint(
             _, errors, exit_status = mypy_api.run_dmypy(["status"])
             if exit_status != 0:
                 log.info(
-                    "restarting dmypy from status: %s message: %s via api", exit_status, errors.strip()
+                    "restarting dmypy from status: %s message: %s via api",
+                    exit_status,
+                    errors.strip(),
                 )
                 mypy_api.run_dmypy(["kill"])
 
