@@ -207,6 +207,7 @@ def pylsp_lint(
         args.append("--strict")
 
     overrides = settings.get("overrides", [True])
+    exit_status = 0
 
     if not dmypy:
         args.extend(["--incremental", "--follow-imports", "silent"])
@@ -221,11 +222,12 @@ def pylsp_lint(
             )
             report = completed_process.stdout.decode()
             errors = completed_process.stderr.decode()
+            exit_status = completed_process.returncode
         else:
             # mypy does not exist on path, but must exist in the env pylsp-mypy is installed in
             # -> use mypy via api
             log.info("executing mypy args = %s via api", args)
-            report, errors, _ = mypy_api.run(args)
+            report, errors, exit_status = mypy_api.run(args)
     else:
         # If dmypy daemon is non-responsive calls to run will block.
         # Check daemon status, if non-zero daemon is dead or hung.
@@ -239,20 +241,20 @@ def pylsp_lint(
             completed_process = subprocess.run(
                 ["dmypy", *apply_overrides(args, overrides)], stderr=subprocess.PIPE, **windows_flag
             )
-            _err = completed_process.stderr.decode()
-            _status = completed_process.returncode
-            if _status != 0:
+            errors = completed_process.stderr.decode()
+            exit_status = completed_process.returncode
+            if exit_status != 0:
                 log.info(
-                    "restarting dmypy from status: %s message: %s via path", _status, _err.strip()
+                    "restarting dmypy from status: %s message: %s via path", exit_status, errors.strip()
                 )
                 subprocess.run(["dmypy", "kill"], **windows_flag)
         else:
             # dmypy does not exist on path, but must exist in the env pylsp-mypy is installed in
             # -> use dmypy via api
-            _, _err, _status = mypy_api.run_dmypy(["status"])
-            if _status != 0:
+            _, errors, exit_status = mypy_api.run_dmypy(["status"])
+            if exit_status != 0:
                 log.info(
-                    "restarting dmypy from status: %s message: %s via api", _status, _err.strip()
+                    "restarting dmypy from status: %s message: %s via api", exit_status, errors.strip()
                 )
                 mypy_api.run_dmypy(["kill"])
 
@@ -268,11 +270,12 @@ def pylsp_lint(
             )
             report = completed_process.stdout.decode()
             errors = completed_process.stderr.decode()
+            exit_status = completed_process.returncode
         else:
             # dmypy does not exist on path, but must exist in the env pylsp-mypy is installed in
             # -> use dmypy via api
             log.info("dmypy run args = %s via api", args)
-            report, errors, _ = mypy_api.run_dmypy(args)
+            report, errors, exit_status = mypy_api.run_dmypy(args)
 
     log.debug("report:\n%s", report)
     log.debug("errors:\n%s", errors)
@@ -290,7 +293,7 @@ def pylsp_lint(
                     "end": {"line": 0, "character": 1000},
                 },
                 "message": errors,
-                "severity": 1,  # Error
+                "severity": 1 if exit_status != 0 else 2,  # Error if exited with error or warning.
             }
         )
 
