@@ -1,0 +1,34 @@
+[tool.black]
+line-length = 100
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pylsp-mypy]
+enabled = true
+live_mode = true
+strict = true
+
+[tool.mypy]
+python_version = "3.7"
+
+[[tool.mypy.overrides]]
+module = "pylsp.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pylsp_mypy.plugin"
+disallow_untyped_decorators = false

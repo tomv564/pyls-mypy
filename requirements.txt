@@ -1,5 +1,8 @@
-future;python_version < '3'
-flake8
-configparser
-python-language-server
-mypy;python_version >= '3.2'
+python-lsp-server
+mypy
+toml
+types-toml
+black
+pre-commit
+rstcheck
+isort
