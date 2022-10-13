@@ -119,6 +119,40 @@ def apply_overrides(args: List[str], overrides: List[Any]) -> List[str]:
     return overrides[: -(len(rest) + 1)] + args + rest
 
 
+def _get_settings(config: Config) -> Any:
+    """
+    Get settings checking for deprecated setting locations.
+
+    Parameters
+    ----------
+    config : Config
+        The pylsp config.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Mypy settings to use.
+
+    """
+    settings = config.plugin_settings("pylsp_mypy")
+    oldSettings1 = config.plugin_settings("mypy-ls")
+    if oldSettings1 != {}:
+        raise DeprecationWarning(
+            "Your configuration uses the namespace mypy-ls, this should be changed to pylsp_mypy"
+        )
+    oldSettings2 = config.plugin_settings("mypy_ls")
+    if oldSettings2 != {}:
+        raise DeprecationWarning(
+            "Your configuration uses the namespace mypy_ls, this should be changed to pylsp_mypy"
+        )
+    if settings == {}:
+        settings = oldSettings1
+        if settings == {}:
+            settings = oldSettings2
+
+    return settings
+
+
 @hookimpl
 def pylsp_lint(
     config: Config, workspace: Workspace, document: Document, is_saved: bool
@@ -143,22 +177,7 @@ def pylsp_lint(
         List of the linting data.
 
     """
-    settings = config.plugin_settings("pylsp_mypy")
-    oldSettings1 = config.plugin_settings("mypy-ls")
-    if oldSettings1 != {}:
-        raise DeprecationWarning(
-            "Your configuration uses the namespace mypy-ls, this should be changed to pylsp_mypy"
-        )
-    oldSettings2 = config.plugin_settings("mypy_ls")
-    if oldSettings2 != {}:
-        raise DeprecationWarning(
-            "Your configuration uses the namespace mypy_ls, this should be changed to pylsp_mypy"
-        )
-    if settings == {}:
-        settings = oldSettings1
-        if settings == {}:
-            settings = oldSettings2
-
+    settings = _get_settings(config)
     log.info(
         "lint settings = %s document.path = %s is_saved = %s",
         settings,
@@ -329,11 +348,20 @@ def pylsp_settings(config: Config) -> Dict[str, Dict[str, Dict[str, str]]]:
         The config dict.
 
     """
-    configuration = init(config._root_path)
+
+    settings = _get_settings(config)
+    log.info(
+        "initialization settings = %s",
+        settings,
+    )
+
+    config_names = settings.get("config_names", [])
+
+    configuration = init(config._root_path, config_names)
     return {"plugins": {"pylsp_mypy": configuration}}
 
 
-def init(workspace: str) -> Dict[str, str]:
+def init(workspace: str, config_names: List[str] = []) -> Dict[str, str]:
     """
     Find plugin and mypy config files and creates the temp file should it be used.
 
@@ -341,6 +369,8 @@ def init(workspace: str) -> Dict[str, str]:
     ----------
     workspace : str
         The path to the current workspace.
+    config_names : List[str]
+        List of configuration file names that will be checked for first.
 
     Returns
     -------
@@ -361,7 +391,8 @@ def init(workspace: str) -> Dict[str, str]:
             with open(path) as file:
                 configuration = ast.literal_eval(file.read())
 
-    mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini", "pyproject.toml"])
+    possibleNames = config_names + ["mypy.ini", ".mypy.ini", "pyproject.toml"]
+    mypyConfigFile = findConfigFile(workspace, possibleNames)
     mypyConfigFileMap[workspace] = mypyConfigFile
 
     log.info("mypyConfigFile = %s configuration = %s", mypyConfigFile, configuration)

@@ -36,6 +36,8 @@ Configuration
 ``overrides`` (default is ``[True]``) specifies a list of alternate or supplemental command-line options.
     This modifies the options passed to ``mypy`` or the mypy-specific ones passed to ``dmypy run``. When present, the special boolean member ``True`` is replaced with the command-line options that would've been passed had ``overrides`` not been specified. Later options take precedence, which allows for replacing or negating individual default options (see ``mypy.main:process_options`` and ``mypy --help | grep inverse``).
 
+``config_names`` (default is ``[]``) specifies alternate file names under which the mypy configuration may be found.
+
 This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
 
 ::
@@ -74,6 +76,15 @@ With ``overrides`` specified (for example to tell mypy to use a different python
     {
         "enabled": True,
         "overrides": ["--python-executable", "/home/me/bin/python", True]
+    }
+
+With ``config_files`` your config could look like this:
+
+::
+
+    {
+        "enabled": True,
+        "config_files": [".config/mypy.ini"]
     }
 
 
